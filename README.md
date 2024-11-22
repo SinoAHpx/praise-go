@@ -1,34 +1,22 @@
-# praise-go
+# PraiseGo
 
-An Electron application with React and TypeScript
+The App helps user to stay motivated & productive.
 
-## Recommended IDE Setup
+### Specification
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- Multiple-platform: Window, Linux and MacOS
+- Key features
+    - Off-attention detector: alert user when they seems to be distracted.
+    - Pomodoro timer: combined with off-attention tracker, each single working session end with a summary of work, subsequented by a regular break session.
+    - Daily summary: user end a specific day at specific time, so they can see how productive or opposite they were. Even weekly and monthly summary is of available.
+    - Motivation booster: user on-purpose send a request to the App with snapshot picture, then App will praise user’s exertion to help user stay motivated.
+    - Different motivation tone: users are able to change their preferred role to motivate them.
 
-## Project Setup
+### Implementation
 
-### Install
-
-```bash
-$ yarn
-```
-
-### Development
-
-```bash
-$ yarn dev
-```
-
-### Build
-
-```bash
-# For windows
-$ yarn build:win
-
-# For macOS
-$ yarn build:mac
-
-# For Linux
-$ yarn build:linux
-```
+- Backend:
+    - NexjJs + SQL Lite
+- Frontend: Electron + NodeJs + React + Chakra UI + Zustand
+- LLM
+    - GPT 4o mini
+    - Qwen2 VLM 7B
