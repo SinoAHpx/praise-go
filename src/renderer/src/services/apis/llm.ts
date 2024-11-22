@@ -1,16 +1,48 @@
-class LLMService {
-    readonly baseUrl
-    readonly model
-    readonly prompt
+import { LLMConfig } from '@renderer/types/llm.types'
+import { log } from 'console'
 
-    constructor(baseUrl: string, model: string, prompt: string) {
-        this.baseUrl = baseUrl
-        this.model = model
-        this.prompt = prompt
+
+
+export class LLMService {
+    readonly baseUrl: string
+    readonly model: string
+    readonly token: string
+    readonly systemPrompt: string
+
+    constructor(config: LLMConfig) {
+        this.baseUrl = `${config.baseUrl}/v1/chat/completions`
+        this.model = config.model
+        this.token = config.token
+        this.systemPrompt = config.systemPrompt
     }
 
-    withPrompt() {}
-}
+    async execute(prompt: string) {
+        const payload = JSON.stringify({
+            model: this.model,
+            messages: [
+                {
+                    role: 'system',
+                    content: this.systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ]
+        })
 
-const llm = new LLMService('https://api.gptsapi.net')
-llm.get()
+        log(payload)
+
+        const options = {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${this.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: payload
+        }
+        const response = await fetch(this.baseUrl, options).then((response) => response.json())
+
+        return response
+    }
+}
