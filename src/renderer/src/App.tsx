@@ -1,26 +1,33 @@
-// import { writeFileSync } from "fs"
-
-import { useState } from "react"
-import Button from "tdesign-react/es/button/Button"
+import { useEffect, useState } from 'react'
+import { Typography, Space } from 'tdesign-react';
+const { Title, Text, Paragraph } = Typography;
 
 function App() {
     const [img, setImg] = useState('')
 
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            setImg(await window.screenAPI.getScreenShot())
+        }, 1000*60);
+
+        return () => clearInterval(interval)
+    }, [])
+    
     return (
         <>
-            <h1>Hello, World</h1>
-            <img src={img} style={{
-                height: '500px',
-                width: '1000px'
-            }}/>
-            <Button
-                onClick={async () => {
-                    const url = await window.screenAPI.getScreenShot()
-                    setImg(url)
+            <Title
+                style={{
+                    margin: 0
                 }}
             >
-                Take screen shot
-            </Button>
+                Praise Go
+            </Title>
+
+            {img && <img src={img} style={{
+                height: '200px'
+            }}/>}
+
+            <Text>awd</Text>
         </>
     )
 }
