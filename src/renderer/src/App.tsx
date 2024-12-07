@@ -1,33 +1,29 @@
 import { useEffect, useState } from 'react'
-import { Typography, Space } from 'tdesign-react';
-const { Title, Text, Paragraph } = Typography;
+
+import Pomodoro from './features/Pomodoro'
+import Box from './components/Box'
 
 function App() {
-    const [img, setImg] = useState('')
+    const [progress, setProgress] = useState(0)
 
     useEffect(() => {
         const interval = setInterval(async () => {
-            setImg(await window.screenAPI.getScreenShot())
-        }, 1000*60);
+            setProgress(p => p + 1)
+        }, 100)
 
         return () => clearInterval(interval)
     }, [])
-    
+
     return (
         <>
-            <Title
-                style={{
-                    margin: 0
-                }}
-            >
-                Praise Go
-            </Title>
-
-            {img && <img src={img} style={{
-                height: '200px'
-            }}/>}
-
-            <Text>awd</Text>
+            <Box style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flex: 1
+            }}>
+                <Pomodoro p={progress} />
+            </Box>
         </>
     )
 }
