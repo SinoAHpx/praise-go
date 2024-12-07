@@ -1,5 +1,5 @@
 export default function Box({children, style} : {
-    style: React.CSSProperties | undefined,
+    style?: React.CSSProperties | undefined,
     children: any,
 }) {
     return <div className="box" style={style}>
