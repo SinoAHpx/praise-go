@@ -1,7 +1,4 @@
 import { LLMConfig } from '@renderer/types/llm.types'
-import { log } from 'console'
-
-
 
 export class LLMService {
     readonly baseUrl: string
@@ -30,8 +27,6 @@ export class LLMService {
                 }
             ]
         })
-
-        log(payload)
 
         const options = {
             method: 'POST',
