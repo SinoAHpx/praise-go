@@ -22,7 +22,7 @@ function App() {
                 alignItems: 'center',
                 flex: 1
             }}>
-                <Pomodoro p={progress} />
+                <Pomodoro progress={progress} />
             </Box>
         </>
     )
