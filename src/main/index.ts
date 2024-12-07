@@ -4,7 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { getScreenShot } from './helpers/screenshot-helper'
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
     const mainWindow = new BrowserWindow({
         width: 440,
         height: 500,
@@ -32,6 +32,8 @@ function createWindow(): void {
     } else {
         mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
     }
+
+    return mainWindow
 }
 
 app.whenReady().then(() => {
@@ -42,6 +44,7 @@ app.whenReady().then(() => {
     })
 
     createWindow()
+        .webContents.openDevTools()
 
     ipcMain.handle('screen:shot', () => {
         const img = getScreenShot()

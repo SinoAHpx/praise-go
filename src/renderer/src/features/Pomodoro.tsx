@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 
 export default function Pomodoro() {
     const [progress, setProgress] = useState(0)
-    const [isRunning, setIsRunning] = useState(true)
+    const [isRunning, setIsRunning] = useState(false)
 
     const handleToggle = () => {
         setIsRunning(prev => !prev)
@@ -42,7 +42,9 @@ export default function Pomodoro() {
                     flex: 1
                 }}
             >
-                <RadicalProgress progress={progress} />
+                <RadicalProgress progress={progress} onComplete={() => {
+                    setIsRunning(false)
+                }}/>
                 <div className="flex gap-x-2.5">
                     <button onClick={handleReset} className="btn btn-circle">
                         <FontAwesomeIcon icon={faRefresh} />
