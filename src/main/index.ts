@@ -6,8 +6,8 @@ import { getScreenShot } from './helpers/screenshot-helper'
 
 function createWindow(): void {
     const mainWindow = new BrowserWindow({
-        width: 900,
-        height: 670,
+        width: 440,
+        height: 500,
         show: false,
         autoHideMenuBar: true,
         ...(process.platform === 'linux' ? { icon } : {}),

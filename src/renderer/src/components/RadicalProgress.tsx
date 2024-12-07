@@ -11,6 +11,9 @@ export default function RadicalProgress({progress}) {
         if (progress >= 100 && !isCompleted) {
             setIsCompleted(true);
         }
+        else{
+            setIsCompleted(false)
+        }
     }, [progress]);
 
     const p = isCompleted ? 0 : ((100 - progress) / 100) * circumference;
