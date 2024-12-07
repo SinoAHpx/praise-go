@@ -1,3 +1,5 @@
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect } from 'react'
 
 export default function RadicalProgress({progress}) {
@@ -50,19 +52,7 @@ export default function RadicalProgress({progress}) {
 
                 <div className="absolute inset-0 flex items-center justify-center">
                     {isCompleted ? (
-                        <svg 
-                            className="w-24 h-24 text-green-500" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                        >
-                            <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
+                        <FontAwesomeIcon icon={faCheck} className="text-green-500 text-8xl" />
                     ) : (
                         <span className="text-4xl font-bold">{displayValue}%</span>
                     )}
