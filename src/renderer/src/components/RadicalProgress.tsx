@@ -3,11 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState, useEffect } from 'react'
 
 export default function RadicalProgress({
-    progress,
+    value,
+    totalValue = 100,
     content = null,
     onComplete
 }: {
-    progress: number
+    value: number
+    totalValue?: number
     content?: any
     onComplete?: () => void
 }) {
@@ -16,17 +18,23 @@ export default function RadicalProgress({
     const circumference = 2 * Math.PI * radius
 
     useEffect(() => {
-        if (progress >= 100) {
+        if (value == totalValue) {
             setIsCompleted(true)
             onComplete?.()
         } else {
             setIsCompleted(false)
         }
-    }, [progress])
+    }, [value])
 
-    const p = isCompleted ? 0 : ((100 - progress) / 100) * circumference
+    const progress = isCompleted ? 0 : ((totalValue - value) / totalValue) * circumference
 
-    const displayValue = isCompleted ? 100 : progress
+    const displayContent =
+        content ??
+        (isCompleted ? (
+            <span className="text-4xl font-bold">100%</span>
+        ) : (
+            <span className="text-4xl font-bold">{Math.floor((value / totalValue) * 100)}%</span>
+        ))
 
     return (
         <div className="flex items-center justify-center">
@@ -51,7 +59,7 @@ export default function RadicalProgress({
                         strokeLinecap="round"
                         className={isCompleted ? 'text-green-500' : 'text-primary'}
                         strokeDasharray={circumference}
-                        strokeDashoffset={p}
+                        strokeDashoffset={progress}
                         style={{
                             transition: 'stroke-dashoffset 0.5s ease, stroke 0.3s ease'
                         }}
@@ -61,7 +69,7 @@ export default function RadicalProgress({
                     {isCompleted ? (
                         <FontAwesomeIcon icon={faCheck} className="text-green-500 text-8xl" />
                     ) : (
-                        (content ?? <span className="text-4xl font-bold">{displayValue}%</span>)
+                        displayContent
                     )}
                 </div>
             </div>

@@ -4,32 +4,40 @@ import Box from '@renderer/components/Box'
 import RadicalProgress from '@renderer/components/RadicalProgress'
 import { useEffect, useState } from 'react'
 
-export default function Pomodoro() {
-    const [progress, setProgress] = useState(0)
+export default function Pomodoro({ minutes = 25 }) {
+    const totalSeconds = minutes * 60
+
+    const [value, setValue] = useState(0)
     const [isRunning, setIsRunning] = useState(false)
+    const [isComplete, setIsComplete] = useState(false)
 
     const handleToggle = () => {
-        setIsRunning(prev => !prev)
+        setIsRunning((prev) => !prev)
     }
 
     const handleReset = () => {
-        setProgress(0)
+        setValue(0)
         setIsRunning(false)
+        setIsComplete(false)
     }
 
     useEffect(() => {
+        if (isComplete) {
+            return
+        }
+
         let interval
 
         if (isRunning) {
             interval = setInterval(async () => {
-                setProgress((p) => p + 1)
-            }, 100)
+                setValue(prev => prev + 1)
+            }, 10)
         }
 
         return () => {
             if (interval) clearInterval(interval)
         }
-    }, [isRunning])
+    }, [isRunning, isComplete])
 
     return (
         <>
@@ -42,15 +50,24 @@ export default function Pomodoro() {
                     flex: 1
                 }}
             >
-                <RadicalProgress progress={progress} onComplete={() => {
-                    setIsRunning(false)
-                }}/>
+                <RadicalProgress
+                    value={value}
+                    totalValue={totalSeconds}
+                    onComplete={() => {
+                        setIsComplete(true)
+                    }}
+                    content={<span className="text-4xl font-bold">{value}</span>}
+                />
                 <div className="flex gap-x-2.5">
                     <button onClick={handleReset} className="btn btn-circle">
                         <FontAwesomeIcon icon={faRefresh} />
                     </button>
                     <button onClick={handleToggle} className="btn btn-circle">
-                        {isRunning ? <FontAwesomeIcon icon={faPause} /> : <FontAwesomeIcon icon={faPlay} />}
+                        {isRunning && !isComplete ? (
+                            <FontAwesomeIcon icon={faPause} />
+                        ) : (
+                            <FontAwesomeIcon icon={faPlay} />
+                        )}
                     </button>
                 </div>
             </Box>
