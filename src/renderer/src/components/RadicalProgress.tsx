@@ -31,14 +31,16 @@ export default function RadicalProgress({
     const displayContent =
         content ??
         (isCompleted ? (
-            <span className="text-4xl font-bold">100%</span>
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold">100%</span>
         ) : (
-            <span className="text-4xl font-bold">{Math.floor((value / totalValue) * 100)}%</span>
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                {Math.floor((value / totalValue) * 100)}%
+            </span>
         ))
 
     return (
-        <div className="flex items-center justify-center">
-            <div className="relative w-96 h-96">
+        <div className="w-full h-full flex items-center justify-center">
+            <div className="relative w-full h-full">
                 <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 220 220">
                     <circle
                         cx="110"
@@ -67,7 +69,7 @@ export default function RadicalProgress({
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                     {isCompleted ? (
-                        <FontAwesomeIcon icon={faCheck} className="text-green-500 text-8xl" />
+                        <FontAwesomeIcon icon={faCheck} className="text-green-500 text-3xl sm:text-4xl md:text-5xl" />
                     ) : (
                         displayContent
                     )}
