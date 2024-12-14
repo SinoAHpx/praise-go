@@ -4,13 +4,35 @@ import Box from '@renderer/components/Box'
 import RadicalProgress from '@renderer/components/RadicalProgress'
 import { useEffect, useState } from 'react'
 
-export default function Pomodoro({ minutes = 25 }) {
-    const totalSeconds = minutes * 60
+interface PomodoroConfig {
+    workMinutes?: number
+    shortBreakMinutes?: number
+    longBreakMinutes?: number
+    longBreakInterval?: number
+}
 
-    const [secondsRemaining, setSecondsRemaining] = useState(totalSeconds)
+export default function Pomodoro({
+    workMinutes = 1,
+    shortBreakMinutes = 5,
+    longBreakMinutes = 15,
+    longBreakInterval = 4
+}: PomodoroConfig) {
+    const [secondsRemaining, setSecondsRemaining] = useState(workMinutes * 60)
     const [isRunning, setIsRunning] = useState(false)
     const [isComplete, setIsComplete] = useState(false)
     const [status, setStatus] = useState<'working' | 'breaking'>('working')
+    const [completedSessions, setCompletedSessions] = useState(0)
+
+    const getCurrentTotalSeconds = () => {
+        if (status === 'working') {
+            return workMinutes * 60
+        }
+        // If it's break time and we've completed a number of sessions divisible by longBreakInterval
+        if (completedSessions % longBreakInterval === 0) {
+            return longBreakMinutes * 60
+        }
+        return shortBreakMinutes * 60
+    }
 
     const formatTime = (seconds: number): string => {
         const minutes = Math.floor(seconds / 60)
@@ -19,14 +41,41 @@ export default function Pomodoro({ minutes = 25 }) {
     }
 
     const handleToggle = () => {
-        setIsRunning((prev) => !prev)
+        if (isComplete) {
+            startNextSession()
+        } else {
+            setIsRunning((prev) => !prev)
+        }
     }
 
     const handleReset = () => {
-        setSecondsRemaining(totalSeconds)
+        setSecondsRemaining(workMinutes * 60)
         setIsRunning(false)
         setIsComplete(false)
         setStatus('working')
+        setCompletedSessions(0)
+    }
+
+    const startNextSession = () => {
+        if (status === 'working') {
+            // Work session completed
+            setCompletedSessions((prev) => prev + 1)
+            setStatus('breaking')
+        } else {
+            // Break session completed
+            setStatus('working')
+        }
+
+        const nextTotalSeconds =
+            status === 'working'
+                ? ((completedSessions + 1) % longBreakInterval === 0
+                      ? longBreakMinutes
+                      : shortBreakMinutes) * 60
+                : workMinutes * 60
+
+        setIsComplete(false)
+        setIsRunning(true)
+        setSecondsRemaining(nextTotalSeconds)
     }
 
     useEffect(() => {
@@ -34,16 +83,16 @@ export default function Pomodoro({ minutes = 25 }) {
             return
         }
 
-        let interval
+        let interval: NodeJS.Timeout | undefined
 
         if (isRunning) {
             interval = setInterval(() => {
-                setSecondsRemaining(prev => {
-                    if (prev - 1 <= 0) {
+                setSecondsRemaining((prev) => {
+                    if (prev <= 1) {
                         setIsComplete(true)
+                        setIsRunning(false)
                         return 0
                     }
-
                     return prev - 1
                 })
             }, 1000)
@@ -53,6 +102,15 @@ export default function Pomodoro({ minutes = 25 }) {
             if (interval) clearInterval(interval)
         }
     }, [isRunning, isComplete])
+
+    const getStatusMessage = () => {
+        if (status === 'working') {
+            return 'Time to Focus!'
+        }
+        return completedSessions % longBreakInterval === 0
+            ? 'Time for a Long Break!'
+            : 'Time for a Short Break!'
+    }
 
     return (
         <>
@@ -69,16 +127,20 @@ export default function Pomodoro({ minutes = 25 }) {
                 }}
             >
                 <div className="text-xl sm:text-2xl font-semibold mb-4 capitalize text-center">
-                    {status === 'working' ? 'Time to Focus!' : 'Time for a Break!'}
+                    {getStatusMessage()}
                 </div>
                 <div className="w-full max-w-[20rem] sm:max-w-[24rem] md:max-w-[28rem] aspect-square relative">
                     <RadicalProgress
-                        value={totalSeconds - secondsRemaining}
-                        totalValue={totalSeconds}
+                        value={getCurrentTotalSeconds() - secondsRemaining}
+                        totalValue={getCurrentTotalSeconds()}
                         onComplete={() => {
                             setIsComplete(true)
                         }}
-                        content={<span className="text-3xl sm:text-4xl md:text-5xl font-bold">{formatTime(secondsRemaining)}</span>}
+                        content={
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                                {formatTime(secondsRemaining)}
+                            </span>
+                        }
                     />
                 </div>
                 <div className="flex gap-x-3 mt-4">
@@ -92,6 +154,14 @@ export default function Pomodoro({ minutes = 25 }) {
                             <FontAwesomeIcon icon={faPlay} className="text-lg sm:text-xl" />
                         )}
                     </button>
+                </div>
+                <div className="mt-4 text-sm text-gray-500">
+                    Session {completedSessions + 1} •{' '}
+                    {status === 'working'
+                        ? 'Work'
+                        : completedSessions % longBreakInterval === 0
+                          ? 'Long Break'
+                          : 'Short Break'}
                 </div>
             </Box>
         </>
