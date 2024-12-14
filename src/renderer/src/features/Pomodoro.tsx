@@ -1,4 +1,4 @@
-import { faPause, faPlay, faRefresh } from '@fortawesome/free-solid-svg-icons'
+import { faPause, faPlay, faRefresh, faStop } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Box from '@renderer/components/Box'
 import RadicalProgress from '@renderer/components/RadicalProgress'
@@ -104,12 +104,44 @@ export default function Pomodoro({
     }, [isRunning, isComplete])
 
     const getStatusMessage = () => {
+        if (isComplete) {
+            // Show next session message when current session is complete
+            return status === 'working' 
+                ? (completedSessions + 1) % longBreakInterval === 0
+                    ? 'Ready for a Long Break!'
+                    : 'Ready for a Short Break!'
+                : 'Ready to Focus!'
+        }
+
+        // Show current session message
         if (status === 'working') {
             return 'Time to Focus!'
         }
-        return completedSessions % longBreakInterval === 0
-            ? 'Time for a Long Break!'
+        return completedSessions % longBreakInterval === 0 
+            ? 'Time for a Long Break!' 
             : 'Time for a Short Break!'
+    }
+
+    const handleStop = () => {
+        // Calculate next session details before changing status
+        const nextStatus = status === 'working' ? 'breaking' : 'working'
+        const nextCompletedSessions = status === 'working' ? completedSessions + 1 : completedSessions
+        
+        // Calculate next session duration
+        const nextTotalSeconds = status === 'working'
+            ? ((nextCompletedSessions % longBreakInterval === 0)
+                ? longBreakMinutes
+                : shortBreakMinutes) * 60
+            : workMinutes * 60
+
+        // Update all states at once for smooth transition
+        if (status === 'working') {
+            setCompletedSessions(nextCompletedSessions)
+        }
+        setStatus(nextStatus)
+        setSecondsRemaining(nextTotalSeconds)
+        setIsRunning(false)
+        setIsComplete(false)
     }
 
     return (
@@ -153,6 +185,13 @@ export default function Pomodoro({
                         ) : (
                             <FontAwesomeIcon icon={faPlay} className="text-lg sm:text-xl" />
                         )}
+                    </button>
+                    <button 
+                        onClick={handleStop} 
+                        className="btn btn-circle btn-md"
+                        disabled={!isRunning || isComplete}
+                    >
+                        <FontAwesomeIcon icon={faStop} className="text-lg sm:text-xl" />
                     </button>
                 </div>
                 <div className="mt-4 text-sm text-gray-500">
