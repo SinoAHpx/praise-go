@@ -1,6 +1,5 @@
 import { faPause, faPlay, faRefresh, faStop } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Box from '@renderer/components/Box'
 import RadicalProgress from '@renderer/components/RadicalProgress'
 import { formatTime } from '@renderer/utils/time'
 import { useEffect, useState } from 'react'
@@ -123,18 +122,7 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
 
     return (
         <>
-            <Box
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    flexDirection: 'column',
-                    flex: 1,
-                    width: '100%',
-                    padding: '1rem',
-                    minHeight: '0'
-                }}
-            >
+            <div className="flex flex-col items-center justify-center flex-1 w-full p-4 h-full">
                 <div className="text-xl sm:text-2xl font-semibold mb-4 capitalize text-center">
                     {getStatusMessage(isComplete, status, completedSessions, longBreakInterval)}
                 </div>
@@ -175,7 +163,7 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
                     Session {completedSessions + 1} •{' '}
                     {getSessionType(status, completedSessions, longBreakInterval)}
                 </div>
-            </Box>
+            </div>
         </>
     )
 }
