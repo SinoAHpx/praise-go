@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -49,6 +49,37 @@ app.whenReady().then(() => {
     ipcMain.handle('screen:shot', () => {
         const img = getScreenShot()
         return img
+    })
+
+    ipcMain.handle('notification:send', async (_, { title, body }) => {
+        if (!Notification.isSupported()) {
+            console.warn('Notifications are not supported on this system')
+            return
+        }
+
+        const notification = new Notification({
+            title,
+            body,
+            silent: false,
+            urgency: 'critical',
+            timeoutType: 'never',
+            actions: [{
+                type: 'button',
+                text: 'OK'
+            }]
+        })
+
+        // Bring window to front when notification is clicked
+        notification.on('click', () => {
+            const windows = BrowserWindow.getAllWindows()
+            if (windows.length > 0) {
+                const mainWindow = windows[0]
+                if (mainWindow.isMinimized()) mainWindow.restore()
+                mainWindow.focus()
+            }
+        })
+
+        notification.show()
     })
 
     //this is for mac
