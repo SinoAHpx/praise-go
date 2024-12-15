@@ -1,8 +1,6 @@
 import Pomodoro from './features/Pomodoro'
 
 function App() {
-
-
     return (
         <>
             <Pomodoro />

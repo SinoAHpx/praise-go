@@ -2,43 +2,39 @@ import { faPause, faPlay, faRefresh, faStop } from '@fortawesome/free-solid-svg-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Box from '@renderer/components/Box'
 import RadicalProgress from '@renderer/components/RadicalProgress'
+import { formatTime } from '@renderer/utils/time'
 import { useEffect, useState } from 'react'
+import { 
+    PomodoroConfig, 
+    getNextSessionDuration, 
+    getStatusMessage,
+    getSessionType,
+    DEFAULT_POMODORO_CONFIG
+} from '@renderer/utils/pomodoroUtils'
 
-interface PomodoroConfig {
-    workMinutes?: number
-    shortBreakMinutes?: number
-    longBreakMinutes?: number
-    longBreakInterval?: number
-}
+export default function Pomodoro(props: Partial<PomodoroConfig>) {
+    const config: PomodoroConfig = {
+        ...DEFAULT_POMODORO_CONFIG,
+        ...props
+    }
 
-export default function Pomodoro({
-    workMinutes = 25,
-    shortBreakMinutes = 5,
-    longBreakMinutes = 15,
-    longBreakInterval = 4
-}: PomodoroConfig) {
+    const {
+        workMinutes,
+        shortBreakMinutes,
+        longBreakMinutes,
+        longBreakInterval
+    } = config
+
     const [secondsRemaining, setSecondsRemaining] = useState(workMinutes * 60)
     const [isRunning, setIsRunning] = useState(false)
     const [isComplete, setIsComplete] = useState(false)
     const [status, setStatus] = useState<'working' | 'breaking'>('working')
     const [completedSessions, setCompletedSessions] = useState(0)
 
-    const getCurrentTotalSeconds = () => {
-        if (status === 'working') {
-            return workMinutes * 60
-        }
-        // If it's break time and we've completed a number of sessions divisible by longBreakInterval
-        if (completedSessions % longBreakInterval === 0) {
-            return longBreakMinutes * 60
-        }
-        return shortBreakMinutes * 60
-    }
-
-    const formatTime = (seconds: number): string => {
-        const minutes = Math.floor(seconds / 60)
-        const remainingSeconds = seconds % 60
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-    }
+    const getCurrentTotalSeconds = () => getNextSessionDuration(
+        config,
+        { status, completedSessions }
+    )
 
     const handleToggle = () => {
         if (isComplete) {
@@ -103,25 +99,6 @@ export default function Pomodoro({
         }
     }, [isRunning, isComplete])
 
-    const getStatusMessage = () => {
-        if (isComplete) {
-            // Show next session message when current session is complete
-            return status === 'working' 
-                ? (completedSessions + 1) % longBreakInterval === 0
-                    ? 'Ready for a Long Break!'
-                    : 'Ready for a Short Break!'
-                : 'Ready to Focus!'
-        }
-
-        // Show current session message
-        if (status === 'working') {
-            return 'Time to Focus!'
-        }
-        return completedSessions % longBreakInterval === 0 
-            ? 'Time for a Long Break!' 
-            : 'Time for a Short Break!'
-    }
-
     const handleStop = () => {
         // Calculate next session details before changing status
         const nextStatus = status === 'working' ? 'breaking' : 'working'
@@ -159,7 +136,7 @@ export default function Pomodoro({
                 }}
             >
                 <div className="text-xl sm:text-2xl font-semibold mb-4 capitalize text-center">
-                    {getStatusMessage()}
+                    {getStatusMessage(isComplete, status, completedSessions, longBreakInterval)}
                 </div>
                 <div className="w-full max-w-[20rem] sm:max-w-[24rem] md:max-w-[28rem] aspect-square relative">
                     <RadicalProgress
@@ -196,11 +173,7 @@ export default function Pomodoro({
                 </div>
                 <div className="mt-4 text-sm text-gray-500">
                     Session {completedSessions + 1} •{' '}
-                    {status === 'working'
-                        ? 'Work'
-                        : completedSessions % longBreakInterval === 0
-                          ? 'Long Break'
-                          : 'Short Break'}
+                    {getSessionType(status, completedSessions, longBreakInterval)}
                 </div>
             </Box>
         </>
