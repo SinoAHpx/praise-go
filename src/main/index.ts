@@ -1,40 +1,7 @@
-import { app, shell, BrowserWindow, ipcMain, Notification } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import { getScreenShot } from './helpers/screenshot-helper'
-
-function createWindow(): BrowserWindow {
-    const mainWindow = new BrowserWindow({
-        width: 350,
-        height: 500,
-        show: false,
-        autoHideMenuBar: true,
-        ...(process.platform === 'linux' ? { icon } : {}),
-        webPreferences: {
-            preload: join(__dirname, '../preload/index.js'),
-            sandbox: false
-        },
-        title: 'PraiseGo'
-    })
-
-    mainWindow.on('ready-to-show', () => {
-        mainWindow.show()
-    })
-
-    mainWindow.webContents.setWindowOpenHandler((details) => {
-        shell.openExternal(details.url)
-        return { action: 'deny' }
-    })
-
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-        mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    } else {
-        mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-    }
-
-    return mainWindow
-}
+import { app, BrowserWindow } from 'electron'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { createMainWindow } from './window/mainWindow'
+import { setupIpcHandlers } from './handlers/ipcHandler'
 
 app.whenReady().then(() => {
     electronApp.setAppUserModelId('com.electron')
@@ -43,48 +10,13 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window)
     })
 
-    createWindow()
+    createMainWindow()
         .webContents.openDevTools()
 
-    ipcMain.handle('screen:shot', () => {
-        const img = getScreenShot()
-        return img
-    })
+    setupIpcHandlers()
 
-    ipcMain.handle('notification:send', async (_, { title, body }) => {
-        if (!Notification.isSupported()) {
-            console.warn('Notifications are not supported on this system')
-            return
-        }
-
-        const notification = new Notification({
-            title,
-            body,
-            silent: false,
-            urgency: 'critical',
-            timeoutType: 'never',
-            actions: [{
-                type: 'button',
-                text: 'OK'
-            }]
-        })
-
-        // Bring window to front when notification is clicked
-        notification.on('click', () => {
-            const windows = BrowserWindow.getAllWindows()
-            if (windows.length > 0) {
-                const mainWindow = windows[0]
-                if (mainWindow.isMinimized()) mainWindow.restore()
-                mainWindow.focus()
-            }
-        })
-
-        notification.show()
-    })
-
-    //this is for mac
     app.on('activate', function () {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
     })
 })
 
