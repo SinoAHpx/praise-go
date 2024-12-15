@@ -1,4 +1,4 @@
-import Pomodoro from './features/pomodoro'
+import Pomodoro from './features/Pomodoro'
 
 function App() {
 

@@ -12,7 +12,7 @@ interface PomodoroConfig {
 }
 
 export default function Pomodoro({
-    workMinutes = 1,
+    workMinutes = 25,
     shortBreakMinutes = 5,
     longBreakMinutes = 15,
     longBreakInterval = 4
