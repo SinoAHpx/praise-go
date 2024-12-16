@@ -57,7 +57,7 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
 
     return (
         <>
-            <div className="flex flex-col items-center justify-center flex-1 w-full p-4 h-full">
+            <div className="select-none flex flex-col items-center justify-center flex-1 w-full p-4 h-full">
                 <div className="text-xl sm:text-2xl font-semibold mb-4 capitalize text-center">
                     {getStatusMessage(
                         isComplete,
