@@ -12,9 +12,24 @@ export function createMainWindow(): BrowserWindow {
         ...(process.platform === 'linux' ? { icon } : {}),
         webPreferences: {
             preload: join(__dirname, '../preload/index.js'),
-            sandbox: false
+            sandbox: false,
+            webSecurity: true
         },
         title: 'PraiseGo'
+    })
+
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [
+                    "default-src 'self';" +
+                    "connect-src 'self' https://api.siliconflow.cn;" +
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+                    "style-src 'self' 'unsafe-inline';"
+                ]
+            }
+        })
     })
 
     mainWindow.on('ready-to-show', () => {

@@ -1,23 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import usePomodoroStore from './app/pomodoroStore'
 import Pomodoro from './features/Pomodoro'
+import { praise } from './services/llm'
 
 function App() {
-    const { isRunning } = usePomodoroStore()
+    const [txt, setTxt] = useState('')
 
-    useEffect(() => {
-        const i = setInterval(() => {
-            if (isRunning) {
-                window.notificationAPI.sendNotification('hi', 'this is a notification')
-            }
-        }, 10000);
-
-        return () => clearInterval(i)
-    }, [isRunning])
+    const handleClick = async () => {
+        const response = await praise()
+        setTxt(response)
+    }
 
     return (
         <>
-            <Pomodoro/>
+            <p>{txt}</p>
+            <button className='btn' onClick={handleClick}>Click me to query</button>
         </>
     )
 }
