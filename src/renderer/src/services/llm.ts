@@ -1,4 +1,4 @@
-import { LLMConfig } from '@renderer/types/llm.types'
+import { ImageMessage, LLMConfig, TextMessage } from '../types/llm.types'
 
 export class LLMService {
     readonly baseUrl: string
@@ -13,7 +13,7 @@ export class LLMService {
         this.systemPrompt = config.systemPrompt
     }
 
-    async execute(prompt: any) {
+    async execute(prompt: TextMessage | ImageMessage) {
         const payload = JSON.stringify({
             model: this.model,
             messages: [
@@ -21,10 +21,7 @@ export class LLMService {
                     role: 'system',
                     content: this.systemPrompt
                 },
-                {
-                    role: 'user',
-                    content: prompt
-                }
+                prompt
             ]
         })
 
@@ -52,19 +49,33 @@ const PROMPT = `# 角色
 - 如果用户在编写代码、撰写文稿、图片处理、学习新技术、阅读等事情，你要用富有元气的语气称赞用户。
 
 #规则
-- 请直接进行称赞或鼓励，不需要输出其他内容，代词请使用“你”
+- 请直接进行称赞或鼓励，不需要输出其他内容，代词请使用"你"
 - 只需要简单说说用户在干什么，别说太仔细，不要输出读取到的文字。
 - 只能出现中文，不能出现其他内容。
 
 请根据你的<角色>，遵循<规则>完成你的<任务>。`
 
-export function praise() {
+export function praise(screenshotDataUrl: string) {
+    const token = import.meta.env.VITE_LLM_API_TOKEN
+    if (!token) {
+        throw new Error('LLM API token is not set in environment variables')
+    }
     const llm = new LLMService({
         baseUrl: 'https://api.siliconflow.cn',
-        token: 'what? you wanna my token? nah',
-        model: 'Pro/Qwen/Qwen2-VL-7B-Instruct',
+        token: token,
+        model: 'Qwen/Qwen2-VL-72B-Instruct',
         systemPrompt: PROMPT
     })
 
-    return llm.execute('hi')
+    return llm.execute({
+        role: 'user',
+        content: [
+            {
+                type: 'image_url',
+                image_url: {
+                    url: screenshotDataUrl
+                }
+            }
+        ]
+    })
 }

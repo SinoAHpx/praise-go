@@ -24,9 +24,10 @@ export function createMainWindow(): BrowserWindow {
                 ...details.responseHeaders,
                 'Content-Security-Policy': [
                     "default-src 'self';" +
-                    "connect-src 'self' https://api.siliconflow.cn;" +
-                    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
-                    "style-src 'self' 'unsafe-inline';"
+                        "connect-src 'self' https://api.siliconflow.cn;" +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+                        "style-src 'self' 'unsafe-inline';" +
+                        "img-src 'self' data:;"
                 ]
             }
         })
@@ -48,4 +49,4 @@ export function createMainWindow(): BrowserWindow {
     }
 
     return mainWindow
-} 
+}
