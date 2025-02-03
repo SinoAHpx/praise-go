@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import Home from './components/Home'
-import Settings from './components/Settings'
+import { useState } from 'react'
+import Home from '@renderer/components/Home'
+import Settings from '@renderer/components/Settings'
 
 function App() {
     const [showSettings, setShowSettings] = useState(false)
