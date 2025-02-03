@@ -37,9 +37,33 @@ function App() {
     }, [isRunning]);
 
     return (
-        <>
-            <Pomodoro />
-        </>
+        <div className="flex h-full">
+            <div className={`flex-1 transition-all duration-300 ${!isRunning ? 'mr-64' : ''}`}>
+                <Pomodoro />
+            </div>
+            
+            {/* Side Panel */}
+            <div className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 overflow-y-auto
+                ${isRunning ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}>
+                <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">Statistics</h2>
+                    <div className="space-y-4">
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Focus Time</h3>
+                            <p className="text-2xl font-bold">2h 30m</p>
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Completed Sessions</h3>
+                            <p className="text-2xl font-bold">{usePomodoroStore(state => state.completedSessions)}</p>
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Status</h3>
+                            <p className="text-2xl font-bold capitalize">{usePomodoroStore(state => state.status)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 
