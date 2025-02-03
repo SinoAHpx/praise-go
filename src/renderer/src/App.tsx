@@ -1,10 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import usePomodoroStore from './app/pomodoroStore'
 import Pomodoro from './features/Pomodoro'
 import { praise } from './services/llm'
 
 function App() {
     const isRunning = usePomodoroStore(state => state.isRunning)
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+
+    const toggleSidebar = () => {
+        setIsSidebarExpanded(!isSidebarExpanded)
+        if (isSidebarExpanded) {
+            window.screenAPI.setWindowSize(600, 500) // Expand window size
+        } else {
+            window.screenAPI.setWindowSize(350, 500) // Shrink window size
+        }
+    }
 
     // Updated useEffect: only runs when pomodoro is running
     useEffect(() => {
@@ -38,12 +48,12 @@ function App() {
 
     return (
         <div className="flex h-full">
-            <div className={`flex-1 transition-all duration-300 ${!isRunning ? 'mr-64' : ''}`}>
+            <div className={`flex-1 ${!isRunning ? 'mr-64' : ''}`} onClick={toggleSidebar}>
                 <Pomodoro />
             </div>
             
             {/* Side Panel */}
-            <div className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 overflow-y-auto
+            <div className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg overflow-y-auto
                 ${isRunning ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}>
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-4">Statistics</h2>

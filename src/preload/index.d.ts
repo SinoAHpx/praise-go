@@ -5,6 +5,7 @@ declare global {
     electron: ElectronAPI
     screenAPI: {
         getScreenShot: () => Promise<string>
+        setWindowSize: (width: number, height: number) => void
     }
     notificationAPI: {
         sendNotification: (title: string, body: string) => Promise<void>

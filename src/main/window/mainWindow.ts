@@ -5,7 +5,7 @@ import icon from '../../../resources/icon.png?asset'
 
 export function createMainWindow(): BrowserWindow {
     const mainWindow = new BrowserWindow({
-        width: 350,
+        width: 600,
         height: 500,
         show: false,
         autoHideMenuBar: true,
@@ -49,4 +49,12 @@ export function createMainWindow(): BrowserWindow {
     }
 
     return mainWindow
+}
+
+export function setWindowSize(width: number, height: number): void {
+    const windows = BrowserWindow.getAllWindows()
+    if (windows.length > 0) {
+        const mainWindow = windows[0]
+        mainWindow.setSize(width, height)
+    }
 }
