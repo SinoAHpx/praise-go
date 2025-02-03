@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import usePomodoroStore from './app/pomodoroStore'
 import Pomodoro from './features/Pomodoro'
 import { praise } from './services/llm'
