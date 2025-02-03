@@ -29,6 +29,8 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
         handleStop
     } = usePomodoroStore()
 
+    const isSidebarExpanded = usePomodoroStore((state) => state.isSidebarExpanded)
+    const toggleSidebar = usePomodoroStore((state) => state.toggleSidebar)
     const getCurrentTotalSeconds = () =>
         getNextSessionDuration(config, { status, completedSessions })
 
@@ -72,6 +74,7 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
                         totalValue={getCurrentTotalSeconds()}
                         onComplete={() => {
                             usePomodoroStore.setState({ isComplete: true })
+                            toggleSidebar()
                         }}
                         content={
                             <span className="text-3xl sm:text-4xl md:text-5xl font-bold">
@@ -81,10 +84,24 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
                     />
                 </div>
                 <div className="flex gap-x-3 mt-4">
-                    <button onClick={handleReset} className="btn btn-circle btn-md">
+                    <button
+                        onClick={() => {
+                            handleReset()
+                            if (isSidebarExpanded) {
+                                toggleSidebar()
+                            }
+                        }}
+                        className="btn btn-circle btn-md"
+                    >
                         <FontAwesomeIcon icon={faRefresh} className="text-lg sm:text-xl" />
                     </button>
-                    <button onClick={handleToggle} className="btn btn-circle btn-md">
+                    <button
+                        onClick={() => {
+                            handleToggle()
+                            toggleSidebar()
+                        }}
+                        className="btn btn-circle btn-md"
+                    >
                         {isRunning && !isComplete ? (
                             <FontAwesomeIcon icon={faPause} className="text-lg sm:text-xl" />
                         ) : (
@@ -92,7 +109,10 @@ export default function Pomodoro(props: Partial<PomodoroConfig>) {
                         )}
                     </button>
                     <button
-                        onClick={handleStop}
+                        onClick={() => {
+                            handleStop()
+                            toggleSidebar()
+                        }}
                         className="btn btn-circle btn-md"
                         disabled={!isRunning || isComplete}
                     >

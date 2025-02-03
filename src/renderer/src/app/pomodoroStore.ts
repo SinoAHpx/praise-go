@@ -1,9 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import {
-    PomodoroConfig,
-    DEFAULT_POMODORO_CONFIG,
-} from '@renderer/utils/pomodoroUtils'
+import { PomodoroConfig, DEFAULT_POMODORO_CONFIG } from '@renderer/utils/pomodoroUtils'
 
 type PomodoroState = {
     secondsRemaining: number
@@ -12,6 +9,7 @@ type PomodoroState = {
     status: 'working' | 'breaking'
     completedSessions: number
     config: PomodoroConfig
+    isSidebarExpanded: boolean
 }
 
 type PomodoroActions = {
@@ -20,6 +18,7 @@ type PomodoroActions = {
     startNextSession: () => void
     handleStop: () => void
     setSecondsRemaining: (seconds: number | ((prevSeconds: number) => number)) => void
+    toggleSidebar: () => void
 }
 
 const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
@@ -30,6 +29,18 @@ const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
         status: 'working',
         completedSessions: 0,
         config: DEFAULT_POMODORO_CONFIG,
+        isSidebarExpanded: false,
+
+        toggleSidebar: () => {
+            set((state) => {
+                state.isSidebarExpanded = !state.isSidebarExpanded
+                if (!state.isSidebarExpanded) {
+                    window.screenAPI.setWindowSize(600, 500)
+                } else {
+                    window.screenAPI.setWindowSize(350, 500)
+                }
+            })
+        },
 
         handleToggle: () => {
             if (get().isComplete) {
@@ -83,7 +94,9 @@ const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
             set((state) => {
                 const nextStatus = state.status === 'working' ? 'breaking' : 'working'
                 const nextCompletedSessions =
-                    state.status === 'working' ? state.completedSessions + 1 : state.completedSessions
+                    state.status === 'working'
+                        ? state.completedSessions + 1
+                        : state.completedSessions
 
                 const nextTotalSeconds =
                     state.status === 'working'
@@ -114,4 +127,4 @@ const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
     }))
 )
 
-export default usePomodoroStore 
+export default usePomodoroStore
