@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import usePomodoroStore from './app/pomodoroStore'
 import Pomodoro from './features/Pomodoro'
 import { praise } from './services/llm'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCog } from '@fortawesome/free-solid-svg-icons'
 
 function App() {
     const isRunning = usePomodoroStore(state => state.isRunning)
@@ -14,6 +16,10 @@ function App() {
         } else {
             window.screenAPI.setWindowSize(350, 500) // Shrink window size
         }
+    }
+
+    const handleSettingsClick = () => {
+        console.log('Settings icon clicked');
     }
 
     // Updated useEffect: only runs when pomodoro is running
@@ -56,7 +62,12 @@ function App() {
             <div className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg overflow-y-auto
                 ${isRunning ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}>
                 <div className="p-6">
-                    <h2 className="text-xl font-bold mb-4">Statistics</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold">Statistics</h2>
+                        <button onClick={handleSettingsClick} className="text-gray-500 hover:text-gray-700">
+                            <FontAwesomeIcon icon={faCog} />
+                        </button>
+                    </div>
                     <div className="space-y-4">
                         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Focus Time</h3>
