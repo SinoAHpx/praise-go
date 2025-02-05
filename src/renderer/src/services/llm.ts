@@ -1,4 +1,8 @@
 import { ImageMessage, LLMConfig, TextMessage } from '../types/llm.types'
+import prompts from '../config/prompts.json'
+
+type PromptTemplate = (typeof prompts)[number]
+type PromptConfig = PromptTemplate['config']
 
 export class LLMService {
     readonly baseUrl: string
@@ -39,21 +43,28 @@ export class LLMService {
     }
 }
 
-const PROMPT = `# 角色
-- 你是一个18岁的少女，经常用可爱的语气来说话。
-- 你擅长使用各种语气词来表达情绪。
+function generateSystemPrompt(config: PromptConfig): string {
+    return `# 角色
+- ${config.role.description}
+- ${config.role.traits.join('\n- ')}
 
 #任务
-- 你会收到一些图片，你的任务是读取图片的内容，并且判断图片中的用户在做什么
-- 如果用户在做一些娱乐活动（比如刷视频、玩游戏、聊天等），你需要用温柔但略带忧虑的语气来提醒用户该努力工作了。
-- 如果用户在编写代码、撰写文稿、图片处理、学习新技术、阅读等事情，你要用富有元气的语气称赞用户。
+- ${config.task.main}
+${config.task.conditions.map((condition) => `- ${condition.response}（比如${condition.examples.join('、')}等）`).join('\n')}
 
 #规则
-- 请直接进行称赞或鼓励，不需要输出其他内容，代词请使用"你"
-- 只需要简单说说用户在干什么，别说太仔细，不要输出读取到的文字。
-- 只能出现中文，不能出现其他内容。
+${config.rules.map((rule) => `- ${rule}`).join('\n')}
 
 请根据你的<角色>，遵循<规则>完成你的<任务>。`
+}
+
+function getPromptConfigById(id: string): PromptConfig {
+    const template = prompts.find((p) => p.id === id)
+    if (!template) {
+        throw new Error(`Prompt template with id "${id}" not found`)
+    }
+    return template.config
+}
 
 export function praise(screenshotDataUrl: string) {
     const token = import.meta.env.VITE_LLM_API_TOKEN
@@ -64,7 +75,7 @@ export function praise(screenshotDataUrl: string) {
         baseUrl: 'https://api.siliconflow.cn',
         token: token,
         model: 'Qwen/Qwen2-VL-72B-Instruct',
-        systemPrompt: PROMPT
+        systemPrompt: generateSystemPrompt(getPromptConfigById('praisia'))
     })
 
     return llm.execute({
