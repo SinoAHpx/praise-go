@@ -6,18 +6,28 @@ export interface LLMConfig {
 }
 
 export interface TextMessage {
-    role: string,
-    content: string
+    type: 'text'
+    text: string
 }
 
 export interface ImageMessage {
-    role: string,
-    content: [
-        {
-            image_url: {
-                url: string
-            },
-            type: 'image_url'
-        }
-    ]
+    type: 'image_url'
+    image_url: {
+        url: string
+    }
+}
+
+export interface PromptConfig {
+    role: {
+        description: string
+        traits: string[]
+    }
+    task: {
+        main: string
+        conditions: Array<{
+            response: string
+            examples: string[]
+        }>
+    }
+    rules: string[]
 }
