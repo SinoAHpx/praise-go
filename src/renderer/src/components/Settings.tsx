@@ -1,59 +1,341 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faMoon, faSun, faBell, faPlay, faPause, faPalette } from '@fortawesome/free-solid-svg-icons';
+import usePomodoroStore, { AVAILABLE_THEMES, Theme } from '@renderer/app/pomodoroStore';
 
 interface SettingsProps {
   onBack: () => void;
 }
 
+// Group themes for better organization
+const THEME_GROUPS = {
+  'Light Themes': ['light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro', 'valentine', 'garden', 'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'cmyk', 'autumn', 'business', 'acid', 'lemonade', 'winter'],
+  'Dark Themes': ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee'],
+  'Special Themes': ['cyberpunk']
+};
+
 const Settings: React.FC<SettingsProps> = ({ onBack }) => {
+  const config = usePomodoroStore((state) => state.config);
+  const darkMode = usePomodoroStore((state) => state.darkMode);
+  const notificationSound = usePomodoroStore((state) => state.notificationSound);
+  const autoStartBreaks = usePomodoroStore((state) => state.autoStartBreaks);
+  const theme = usePomodoroStore((state) => state.theme);
+  const updateConfig = usePomodoroStore((state) => state.updateConfig);
+  const toggleDarkMode = usePomodoroStore((state) => state.toggleDarkMode);
+  const setNotificationSound = usePomodoroStore((state) => state.setNotificationSound);
+  const toggleAutoStartBreaks = usePomodoroStore((state) => state.toggleAutoStartBreaks);
+  const setTheme = usePomodoroStore((state) => state.setTheme);
+  
+  const [workMinutes, setWorkMinutes] = useState(config.workMinutes);
+  const [shortBreakMinutes, setShortBreakMinutes] = useState(config.shortBreakMinutes);
+  const [longBreakMinutes, setLongBreakMinutes] = useState(config.longBreakMinutes);
+  const [longBreakInterval, setLongBreakInterval] = useState(config.longBreakInterval);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
+
+  useEffect(() => {
+    // Reset local state when config changes from outside
+    setWorkMinutes(config.workMinutes);
+    setShortBreakMinutes(config.shortBreakMinutes);
+    setLongBreakMinutes(config.longBreakMinutes);
+    setLongBreakInterval(config.longBreakInterval);
+  }, [config]);
+
+  // Check if there are unsaved changes
+  useEffect(() => {
+    const configChanged = 
+      workMinutes !== config.workMinutes ||
+      shortBreakMinutes !== config.shortBreakMinutes ||
+      longBreakMinutes !== config.longBreakMinutes ||
+      longBreakInterval !== config.longBreakInterval;
+    
+    setHasChanges(configChanged);
+  }, [workMinutes, shortBreakMinutes, longBreakMinutes, longBreakInterval, config]);
+
+  const handleWorkMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setWorkMinutes(value);
+  };
+
+  const handleShortBreakMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setShortBreakMinutes(value);
+  };
+
+  const handleLongBreakMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setLongBreakMinutes(value);
+  };
+
+  const handleLongBreakIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setLongBreakInterval(value);
+  };
+
+  const saveSettings = () => {
+    updateConfig({
+      workMinutes,
+      shortBreakMinutes,
+      longBreakMinutes,
+      longBreakInterval
+    });
+    setHasChanges(false);
+  };
+
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    setShowThemeModal(false);
+  };
+
+  // Function to capitalize first letter of each word
+  const formatThemeName = (themeName: string) => {
+    return themeName
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
-    <div className="h-full bg-white dark:bg-gray-800">
+    <div className="min-h-full bg-base-100">
       <div className="p-6">
         <button 
           onClick={onBack} 
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 transition-colors duration-200"
+          className="btn btn-ghost btn-sm gap-2 mb-6"
         >
           <FontAwesomeIcon icon={faArrowLeft} />
           <span>Back</span>
         </button>
         <h1 className="text-2xl font-bold mb-8">Settings</h1>
         <div className="space-y-6">
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Work Duration</h3>
-            <input 
-              type="range" 
-              min="1" 
-              max="60" 
-              defaultValue="25"
-              className="w-full"
-            />
-            <div className="text-right text-sm text-gray-500">25 minutes</div>
+          {/* Theme Selector */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <div className="flex justify-between items-center">
+                <h3 className="card-title text-sm">Theme</h3>
+                <button 
+                  onClick={() => setShowThemeModal(true)}
+                  className="btn btn-sm btn-outline gap-2"
+                >
+                  <FontAwesomeIcon icon={faPalette} />
+                  <span>{formatThemeName(theme)}</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Short Break Duration</h3>
-            <input 
-              type="range" 
-              min="1" 
-              max="30" 
-              defaultValue="5"
-              className="w-full"
-            />
-            <div className="text-right text-sm text-gray-500">5 minutes</div>
+
+          {/* Dark Mode Toggle */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <div className="flex justify-between items-center">
+                <h3 className="card-title text-sm">Dark Mode</h3>
+                <label className="swap swap-rotate">
+                  <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+                  <FontAwesomeIcon icon={faSun} className="swap-on w-5 h-5" />
+                  <FontAwesomeIcon icon={faMoon} className="swap-off w-5 h-5" />
+                </label>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Long Break Duration</h3>
-            <input 
-              type="range" 
-              min="1" 
-              max="60" 
-              defaultValue="15"
-              className="w-full"
-            />
-            <div className="text-right text-sm text-gray-500">15 minutes</div>
+
+          {/* Notification Sound */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title text-sm mb-2">Notification Sound</h3>
+              <div className="flex items-center gap-2">
+                <FontAwesomeIcon icon={faBell} className="text-base-content opacity-70" />
+                <select 
+                  value={notificationSound}
+                  onChange={(e) => setNotificationSound(e.target.value)}
+                  className="select select-bordered select-sm w-full"
+                >
+                  <option value="bell">Bell</option>
+                  <option value="chime">Chime</option>
+                  <option value="digital">Digital</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
           </div>
+
+          {/* Auto Start Breaks */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <div className="flex justify-between items-center">
+                <h3 className="card-title text-sm">Auto Start Breaks</h3>
+                <input 
+                  type="checkbox" 
+                  className="toggle toggle-primary" 
+                  checked={autoStartBreaks}
+                  onChange={toggleAutoStartBreaks}
+                />
+              </div>
+              <div className="text-xs opacity-70 mt-2">
+                {autoStartBreaks ? (
+                  <div className="flex items-center gap-1">
+                    <FontAwesomeIcon icon={faPlay} className="text-success" />
+                    <span>Breaks will start automatically</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <FontAwesomeIcon icon={faPause} className="text-warning" />
+                    <span>Breaks need to be started manually</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Work Duration */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title text-sm mb-2">Work Duration</h3>
+              <input 
+                type="range" 
+                min="1" 
+                max="60" 
+                value={workMinutes}
+                onChange={handleWorkMinutesChange}
+                className="range range-primary"
+                step="1"
+              />
+              <div className="w-full flex justify-between text-xs px-2 mt-1">
+                <span>1</span>
+                <span>15</span>
+                <span>30</span>
+                <span>45</span>
+                <span>60</span>
+              </div>
+              <div className="text-right text-sm opacity-70 mt-1">{workMinutes} minutes</div>
+            </div>
+          </div>
+
+          {/* Short Break Duration */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title text-sm mb-2">Short Break Duration</h3>
+              <input 
+                type="range" 
+                min="1" 
+                max="30" 
+                value={shortBreakMinutes}
+                onChange={handleShortBreakMinutesChange}
+                className="range range-secondary"
+                step="1"
+              />
+              <div className="w-full flex justify-between text-xs px-2 mt-1">
+                <span>1</span>
+                <span>8</span>
+                <span>15</span>
+                <span>22</span>
+                <span>30</span>
+              </div>
+              <div className="text-right text-sm opacity-70 mt-1">{shortBreakMinutes} minutes</div>
+            </div>
+          </div>
+
+          {/* Long Break Duration */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title text-sm mb-2">Long Break Duration</h3>
+              <input 
+                type="range" 
+                min="1" 
+                max="60" 
+                value={longBreakMinutes}
+                onChange={handleLongBreakMinutesChange}
+                className="range range-accent"
+                step="1"
+              />
+              <div className="w-full flex justify-between text-xs px-2 mt-1">
+                <span>1</span>
+                <span>15</span>
+                <span>30</span>
+                <span>45</span>
+                <span>60</span>
+              </div>
+              <div className="text-right text-sm opacity-70 mt-1">{longBreakMinutes} minutes</div>
+            </div>
+          </div>
+
+          {/* Long Break Interval */}
+          <div className="card bg-base-200 shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title text-sm mb-2">Long Break Interval</h3>
+              <input 
+                type="range" 
+                min="2" 
+                max="8" 
+                value={longBreakInterval}
+                onChange={handleLongBreakIntervalChange}
+                className="range range-info"
+                step="1"
+              />
+              <div className="w-full flex justify-between text-xs px-2 mt-1">
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>6</span>
+                <span>8</span>
+              </div>
+              <div className="text-right text-sm opacity-70 mt-1">Every {longBreakInterval} sessions</div>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <button 
+            onClick={saveSettings}
+            disabled={!hasChanges}
+            className={`btn btn-block ${hasChanges ? 'btn-primary' : 'btn-disabled'}`}
+          >
+            {hasChanges ? 'Save Settings' : 'No Changes'}
+          </button>
         </div>
       </div>
+
+      {/* Theme Selection Modal - Positioned absolutely in the center */}
+      {showThemeModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowThemeModal(false)}></div>
+          <div className="modal-box relative z-10 max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <button 
+              className="btn btn-sm btn-circle absolute right-2 top-2" 
+              onClick={() => setShowThemeModal(false)}
+            >
+              ✕
+            </button>
+            <h3 className="font-bold text-lg mb-4">Select Theme</h3>
+            
+            <div className="tabs tabs-boxed mb-4">
+              <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
+              <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
+              <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 pr-2">
+              {Object.entries(THEME_GROUPS).map(([groupName, themes]) => (
+                <div key={groupName} className="mb-4">
+                  <h4 className="font-semibold mb-2 text-sm opacity-70">{groupName}</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {themes.map((themeName) => (
+                      <button
+                        key={themeName}
+                        className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
+                        onClick={() => handleThemeChange(themeName as Theme)}
+                      >
+                        {formatThemeName(themeName)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="modal-action mt-4">
+              <button className="btn btn-primary" onClick={() => setShowThemeModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
