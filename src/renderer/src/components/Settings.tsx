@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMoon, faSun, faBell, faPlay, faPause, faPalette } from '@fortawesome/free-solid-svg-icons';
-import usePomodoroStore, { AVAILABLE_THEMES, Theme } from '@renderer/app/pomodoroStore';
+import usePomodoroStore, { Theme } from '@renderer/app/pomodoroStore';
 import { playNotificationSound } from '@renderer/utils/notificationUtils';
 
 interface SettingsProps {
