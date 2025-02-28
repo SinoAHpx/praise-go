@@ -40,8 +40,12 @@ export default function RadicalProgress({
 
     return (
         <div className="w-full h-full flex items-center justify-center">
-            <div className="relative w-full h-full">
-                <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 220 220">
+            <div className="relative w-full h-full max-w-full max-h-full">
+                <svg 
+                    className="transform -rotate-90 w-full h-full" 
+                    viewBox="0 0 220 220"
+                    preserveAspectRatio="xMidYMid meet"
+                >
                     <circle
                         cx="110"
                         cy="110"
@@ -49,7 +53,7 @@ export default function RadicalProgress({
                         stroke="currentColor"
                         strokeWidth="8"
                         fill="none"
-                        className="text-gray-200"
+                        className="text-base-300"
                     />
                     <circle
                         cx="110"
@@ -59,7 +63,7 @@ export default function RadicalProgress({
                         strokeWidth="8"
                         fill="none"
                         strokeLinecap="round"
-                        className={isCompleted ? 'text-green-500' : 'text-primary'}
+                        className={isCompleted ? 'text-success' : 'text-primary'}
                         strokeDasharray={circumference}
                         strokeDashoffset={progress}
                         style={{
@@ -69,7 +73,7 @@ export default function RadicalProgress({
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                     {isCompleted ? (
-                        <FontAwesomeIcon icon={faCheck} className="text-green-500 text-3xl sm:text-4xl md:text-5xl" />
+                        <FontAwesomeIcon icon={faCheck} className="text-success text-3xl sm:text-4xl md:text-5xl" />
                     ) : (
                         displayContent
                     )}

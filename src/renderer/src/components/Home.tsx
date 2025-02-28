@@ -11,7 +11,6 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ onShowSettings }) => {
     const isRunning = usePomodoroStore((state) => state.isRunning)
-    // const isSidebarExpanded = usePomodoroStore((state) => state.isSidebarExpanded)
     
     useEffect(() => {
         if (!isRunning) return
@@ -40,42 +39,44 @@ const Home: React.FC<HomeProps> = ({ onShowSettings }) => {
     }, [isRunning])
 
     return (
-        <div className="flex h-full">
-            <div className={`flex-1 ${!isRunning ? 'mr-64' : ''}`}>
+        <div className="flex flex-row h-full overflow-hidden">
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col h-full mr-64">
                 <Pomodoro />
             </div>
 
             {/* Side Panel */}
             <div
-                className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg overflow-y-auto ${isRunning ? 'w-0 opacity-0' : 'w-64 opacity-100'}`}
+                className="fixed right-0 top-0 h-full w-64 bg-base-200 shadow-lg overflow-y-auto"
             >
-                <div className="p-6">
+                <div className="p-6 h-full flex flex-col">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold">Statistics</h2>
                         <button
                             onClick={onShowSettings}
-                            className="text-gray-500 hover:text-gray-700"
+                            className="btn btn-ghost btn-sm btn-circle"
+                            aria-label="Settings"
                         >
                             <FontAwesomeIcon icon={faCog} />
                         </button>
                     </div>
-                    <div className="space-y-4">
-                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <div className="space-y-4 flex-1">
+                        <div className="bg-base-100 p-4 rounded-lg shadow-sm">
+                            <h3 className="text-sm font-medium opacity-70">
                                 Today's Focus Time
                             </h3>
                             <p className="text-2xl font-bold">2h 30m</p>
                         </div>
-                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <div className="bg-base-100 p-4 rounded-lg shadow-sm">
+                            <h3 className="text-sm font-medium opacity-70">
                                 Completed Sessions
                             </h3>
                             <p className="text-2xl font-bold">
                                 {usePomodoroStore((state) => state.completedSessions)}
                             </p>
                         </div>
-                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <div className="bg-base-100 p-4 rounded-lg shadow-sm">
+                            <h3 className="text-sm font-medium opacity-70">
                                 Current Status
                             </h3>
                             <p className="text-2xl font-bold capitalize">

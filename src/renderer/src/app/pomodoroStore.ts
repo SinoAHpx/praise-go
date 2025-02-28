@@ -101,11 +101,6 @@ const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
         toggleSidebar: () => {
             set((state) => {
                 state.isSidebarExpanded = !state.isSidebarExpanded
-                if (!state.isSidebarExpanded) {
-                    window.screenAPI.setWindowSize(600, 500)
-                } else {
-                    window.screenAPI.setWindowSize(350, 500)
-                }
             })
         },
 
@@ -299,26 +294,6 @@ const usePomodoroStore = create<PomodoroState & PomodoroActions>()(
 
                 // Apply theme to document
                 document.documentElement.setAttribute('data-theme', theme)
-
-                // If theme is dark-based, also set dark mode
-                const darkThemes = [
-                    'dark',
-                    'synthwave',
-                    'halloween',
-                    'forest',
-                    'black',
-                    'luxury',
-                    'dracula',
-                    'night',
-                    'coffee'
-                ]
-                if (darkThemes.includes(theme)) {
-                    state.darkMode = true
-                    document.documentElement.classList.add('dark')
-                } else {
-                    state.darkMode = false
-                    document.documentElement.classList.remove('dark')
-                }
 
                 // Save to localStorage
                 try {

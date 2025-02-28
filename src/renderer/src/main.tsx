@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import usePomodoroStore from './app/pomodoroStore'
+import { preloadNotificationSounds } from './utils/notificationUtils'
 
 // Initialize theme and dark mode from localStorage before rendering
 const initializeTheme = () => {
@@ -30,6 +31,9 @@ const initializeTheme = () => {
 
 // Call initialization function
 initializeTheme()
+
+// Preload notification sounds
+preloadNotificationSounds()
 
 // Wrapper component to initialize store
 const AppWrapper = () => {

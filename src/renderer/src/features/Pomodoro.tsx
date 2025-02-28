@@ -11,6 +11,7 @@ import {
     DEFAULT_POMODORO_CONFIG
 } from '@renderer/utils/pomodoroUtils'
 import usePomodoroStore from '@renderer/app/pomodoroStore'
+import { playNotificationSound, showNotification } from '@renderer/utils/notificationUtils'
 
 // Custom hook to handle timer logic
 const useTimer = (isRunning: boolean, isComplete: boolean) => {
@@ -87,7 +88,8 @@ export default function Pomodoro(props: PomodoroProps) {
         completedSessions,
         handleToggle,
         handleReset,
-        handleStop
+        handleStop,
+        notificationSound
     } = usePomodoroStore()
 
     const isSidebarExpanded = usePomodoroStore((state) => state.isSidebarExpanded)
@@ -98,6 +100,18 @@ export default function Pomodoro(props: PomodoroProps) {
 
     // Use the custom timer hook
     useTimer(isRunning, isComplete)
+
+    // Handle session completion
+    useEffect(() => {
+        if (isComplete) {
+            // Play notification sound
+            playNotificationSound(notificationSound)
+            
+            // Show notification
+            const nextSessionType = status === 'working' ? 'Break' : 'Work'
+            showNotification('Pomodoro Timer', `Time's up! ${nextSessionType} session is ready to start.`)
+        }
+    }, [isComplete, status, notificationSound])
 
     const statusMessage = getStatusMessage(
         isComplete,
@@ -111,53 +125,69 @@ export default function Pomodoro(props: PomodoroProps) {
         completedSessions,
         config.longBreakInterval
     )}`
+    
+    // Function to test notification sound
+    const testNotificationSound = () => {
+        playNotificationSound(notificationSound);
+        showNotification('Test Notification', 'This is a test notification');
+    };
 
     return (
-        <div className="select-none flex flex-col items-center justify-center flex-1 w-full p-4 h-full">
-            <StatusDisplay message={statusMessage} sessionInfo={sessionInfo} />
-
-            <div className="w-full max-w-[20rem] sm:max-w-[24rem] md:max-w-[28rem] aspect-square relative">
-                <RadicalProgress
-                    value={getCurrentTotalSeconds() - secondsRemaining}
-                    totalValue={getCurrentTotalSeconds()}
-                    onComplete={() => {
-                        usePomodoroStore.setState({ isComplete: true })
-                        toggleSidebar()
-                    }}
-                    content={
-                        <span className="text-3xl sm:text-4xl md:text-5xl font-bold">
-                            {formatTime(secondsRemaining)}
-                        </span>
-                    }
-                />
+        <div className="flex flex-col items-center justify-between h-full w-full py-6 px-4 overflow-hidden">
+            <div className="w-full text-center">
+                <StatusDisplay message={statusMessage} sessionInfo={sessionInfo} />
             </div>
 
-            <div className="flex gap-x-3 mt-4">
-                <ControlButton
-                    icon={faRefresh}
-                    onClick={() => {
-                        handleReset()
-                        if (isSidebarExpanded) {
-                            toggleSidebar()
+            <div className="flex-1 flex items-center justify-center w-full max-w-full">
+                <div className="w-full max-w-[20rem] sm:max-w-[24rem] md:max-w-[28rem] aspect-square relative">
+                    <RadicalProgress
+                        value={getCurrentTotalSeconds() - secondsRemaining}
+                        totalValue={getCurrentTotalSeconds()}
+                        onComplete={() => {
+                            usePomodoroStore.setState({ isComplete: true })
+                        }}
+                        content={
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                                {formatTime(secondsRemaining)}
+                            </span>
                         }
-                    }}
-                />
-                <ControlButton
-                    icon={isRunning && !isComplete ? faPause : faPlay}
-                    onClick={() => {
-                        handleToggle()
-                        toggleSidebar()
-                    }}
-                />
-                <ControlButton
-                    icon={faStop}
-                    onClick={() => {
-                        handleStop()
-                        toggleSidebar()
-                    }}
-                    disabled={!isRunning || isComplete}
-                />
+                    />
+                </div>
             </div>
+
+            <div className="w-full flex justify-center mt-4">
+                <div className="flex gap-x-3">
+                    <ControlButton
+                        icon={faRefresh}
+                        onClick={() => {
+                            handleReset()
+                        }}
+                    />
+                    <ControlButton
+                        icon={isRunning && !isComplete ? faPause : faPlay}
+                        onClick={() => {
+                            handleToggle()
+                        }}
+                    />
+                    <ControlButton
+                        icon={faStop}
+                        onClick={() => {
+                            handleStop()
+                        }}
+                        disabled={!isRunning || isComplete}
+                    />
+                </div>
+            </div>
+            
+            {/* Hidden in production, useful for development */}
+            {process.env.NODE_ENV === 'development' && (
+                <button 
+                    className="mt-4 text-xs opacity-50 hover:opacity-100"
+                    onClick={testNotificationSound}
+                >
+                    Test Notification
+                </button>
+            )}
         </div>
     )
 }

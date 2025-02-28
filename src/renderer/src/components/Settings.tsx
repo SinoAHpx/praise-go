@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMoon, faSun, faBell, faPlay, faPause, faPalette } from '@fortawesome/free-solid-svg-icons';
 import usePomodoroStore, { AVAILABLE_THEMES, Theme } from '@renderer/app/pomodoroStore';
+import { playNotificationSound } from '@renderer/utils/notificationUtils';
 
 interface SettingsProps {
   onBack: () => void;
@@ -101,22 +102,41 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
     return createPortal(
       <div className="fixed inset-0 flex items-center justify-center z-[9999]">
         <div className="fixed inset-0 bg-black bg-opacity-70" onClick={() => setShowThemeModal(false)}></div>
-        <div className="modal-box relative z-10 max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col bg-base-100 shadow-xl border border-base-300">
+        <div className="modal-box relative z-10 max-w-md w-full max-h-[80vh] flex flex-col bg-base-100 shadow-xl border border-base-300">
           <button 
-            className="btn btn-sm btn-circle absolute right-2 top-2" 
+            className="btn btn-sm btn-circle absolute right-2 top-2 z-10" 
             onClick={() => setShowThemeModal(false)}
           >
             ✕
           </button>
-          <h3 className="font-bold text-lg mb-4">Select Theme</h3>
           
-          <div className="tabs tabs-boxed mb-4">
-            <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
-            <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
-            <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
+          <div className="p-4 pb-0">
+            <h3 className="font-bold text-lg mb-4">Select Theme</h3>
+            
+            <div className="tabs tabs-boxed mb-4">
+              <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
+              <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
+              <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
+            </div>
+            
+            {/* Theme Preview */}
+            <div className="mb-4 p-3 border border-base-300 rounded-lg">
+              <div className="text-sm font-semibold mb-2 opacity-70">Preview</div>
+              <div className="flex gap-2 mb-2">
+                <button className="btn btn-primary btn-sm">Primary</button>
+                <button className="btn btn-secondary btn-sm">Secondary</button>
+                <button className="btn btn-accent btn-sm">Accent</button>
+              </div>
+              <div className="flex gap-2">
+                <button className="btn btn-info btn-sm">Info</button>
+                <button className="btn btn-success btn-sm">Success</button>
+                <button className="btn btn-warning btn-sm">Warning</button>
+                <button className="btn btn-error btn-sm">Error</button>
+              </div>
+            </div>
           </div>
           
-          <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar">
+          <div className="overflow-y-auto flex-1 px-4 pr-2 custom-scrollbar">
             {Object.entries(THEME_GROUPS).map(([groupName, themes]) => (
               <div key={groupName} className="mb-4">
                 <h4 className="font-semibold mb-2 text-sm opacity-70">{groupName}</h4>
@@ -135,8 +155,8 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
             ))}
           </div>
           
-          <div className="modal-action mt-4">
-            <button className="btn btn-primary" onClick={() => setShowThemeModal(false)}>Close</button>
+          <div className="p-4 pt-2">
+            <button className="btn btn-primary w-full" onClick={() => setShowThemeModal(false)}>Close</button>
           </div>
         </div>
       </div>,
@@ -145,16 +165,21 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-full bg-base-100">
-      <div className="p-6">
+    <div className="h-full flex flex-col bg-base-100 overflow-hidden">
+      {/* Fixed Header */}
+      <div className="p-6 pb-2">
         <button 
           onClick={onBack} 
-          className="btn btn-ghost btn-sm gap-2 mb-6"
+          className="btn btn-ghost btn-sm gap-2 mb-4"
         >
           <FontAwesomeIcon icon={faArrowLeft} />
           <span>Back</span>
         </button>
-        <h1 className="text-2xl font-bold mb-8">Settings</h1>
+        <h1 className="text-2xl font-bold">Settings</h1>
+      </div>
+      
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6">
         <div className="space-y-6">
           {/* Theme Selector */}
           <div className="card bg-base-200 shadow-sm">
@@ -202,6 +227,14 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                   <option value="digital">Digital</option>
                   <option value="none">None</option>
                 </select>
+                <button 
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => playNotificationSound(notificationSound)}
+                  disabled={notificationSound === 'none'}
+                  title="Test Sound"
+                >
+                  <FontAwesomeIcon icon={faPlay} />
+                </button>
               </div>
             </div>
           </div>
@@ -334,7 +367,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
           <button 
             onClick={saveSettings}
             disabled={!hasChanges}
-            className={`btn btn-block ${hasChanges ? 'btn-primary' : 'btn-disabled'}`}
+            className={`btn btn-block ${hasChanges ? 'btn-primary' : 'btn-disabled'} mb-4`}
           >
             {hasChanges ? 'Save Settings' : 'No Changes'}
           </button>
