@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMoon, faSun, faBell, faPlay, faPause, faPalette } from '@fortawesome/free-solid-svg-icons';
-import usePomodoroStore, { Theme } from '@renderer/app/pomodoroStore';
+import usePomodoroStore, { Theme, AVAILABLE_THEMES } from '@renderer/app/pomodoroStore';
 import { playNotificationSound } from '@renderer/utils/notificationUtils';
 
 interface SettingsProps {
@@ -16,6 +16,39 @@ const THEME_GROUPS = {
   'Special Themes': ['cyberpunk']
 };
 
+// Define custom theme presets with descriptive names
+const THEME_PRESETS = {
+  'Productivity': [
+    { name: 'Focus Mode', theme: 'dracula' },
+    { name: 'Clean Workspace', theme: 'lofi' },
+    { name: 'Minimal', theme: 'corporate' }
+  ],
+  'Creative': [
+    { name: 'Inspiration', theme: 'synthwave' },
+    { name: 'Artistic', theme: 'fantasy' },
+    { name: 'Vibrant', theme: 'cyberpunk' }
+  ],
+  'Relaxing': [
+    { name: 'Calm', theme: 'aqua' },
+    { name: 'Soothing', theme: 'garden' },
+    { name: 'Cozy', theme: 'coffee' }
+  ],
+  'Seasonal': [
+    { name: 'Spring', theme: 'pastel' },
+    { name: 'Summer', theme: 'bumblebee' },
+    { name: 'Fall', theme: 'autumn' },
+    { name: 'Winter', theme: 'winter' }
+  ]
+};
+
+// Define theme categories
+type ThemeCategory = 'light' | 'dark' | 'custom';
+
+// Define direct light and dark theme lists
+const LIGHT_THEMES = ['light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro', 'valentine', 'garden', 'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'cmyk', 'autumn', 'business', 'acid', 'lemonade', 'winter'];
+const DARK_THEMES = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee'];
+const SPECIAL_THEMES = ['cyberpunk'];
+
 const Settings: React.FC<SettingsProps> = ({ onBack }) => {
   const config = usePomodoroStore((state) => state.config);
   const darkMode = usePomodoroStore((state) => state.darkMode);
@@ -28,65 +61,49 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
   const toggleAutoStartBreaks = usePomodoroStore((state) => state.toggleAutoStartBreaks);
   const setTheme = usePomodoroStore((state) => state.setTheme);
   
-  const [workMinutes, setWorkMinutes] = useState(config.workMinutes);
-  const [shortBreakMinutes, setShortBreakMinutes] = useState(config.shortBreakMinutes);
-  const [longBreakMinutes, setLongBreakMinutes] = useState(config.longBreakMinutes);
-  const [longBreakInterval, setLongBreakInterval] = useState(config.longBreakInterval);
-  const [hasChanges, setHasChanges] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [activeThemeCategory, setActiveThemeCategory] = useState<ThemeCategory>(
+    theme === 'light' ? 'light' : 
+    theme === 'dark' ? 'dark' : 'custom'
+  );
 
+  // Debugging useEffect
   useEffect(() => {
-    // Reset local state when config changes from outside
-    setWorkMinutes(config.workMinutes);
-    setShortBreakMinutes(config.shortBreakMinutes);
-    setLongBreakMinutes(config.longBreakMinutes);
-    setLongBreakInterval(config.longBreakInterval);
-  }, [config]);
-
-  // Check if there are unsaved changes
-  useEffect(() => {
-    const configChanged = 
-      workMinutes !== config.workMinutes ||
-      shortBreakMinutes !== config.shortBreakMinutes ||
-      longBreakMinutes !== config.longBreakMinutes ||
-      longBreakInterval !== config.longBreakInterval;
-    
-    setHasChanges(configChanged);
-  }, [workMinutes, shortBreakMinutes, longBreakMinutes, longBreakInterval, config]);
+    console.log(`[${new Date().toISOString()}] Tab switched to: ${activeThemeCategory}`);
+  }, [activeThemeCategory]);
 
   const handleWorkMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setWorkMinutes(value);
+    updateConfig({ workMinutes: value });
   };
 
   const handleShortBreakMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setShortBreakMinutes(value);
+    updateConfig({ shortBreakMinutes: value });
   };
 
   const handleLongBreakMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setLongBreakMinutes(value);
+    updateConfig({ longBreakMinutes: value });
   };
 
   const handleLongBreakIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setLongBreakInterval(value);
-  };
-
-  const saveSettings = () => {
-    updateConfig({
-      workMinutes,
-      shortBreakMinutes,
-      longBreakMinutes,
-      longBreakInterval
-    });
-    setHasChanges(false);
+    updateConfig({ longBreakInterval: value });
   };
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    setShowThemeModal(false);
+    // Update active category based on the selected theme
+    if (newTheme === 'light') {
+      setActiveThemeCategory('light');
+    } else if (newTheme === 'dark') {
+      setActiveThemeCategory('dark');
+    } else {
+      setActiveThemeCategory('custom');
+    }
+    // Don't auto-close the theme selector in the inline version
+    // setShowThemeModal(false);
   };
 
   // Function to capitalize first letter of each word
@@ -95,73 +112,6 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
-  };
-
-  // Theme Modal Portal Component
-  const ThemeModalPortal = () => {
-    return createPortal(
-      <div className="fixed inset-0 flex items-center justify-center z-[9999]">
-        <div className="fixed inset-0 bg-black bg-opacity-70" onClick={() => setShowThemeModal(false)}></div>
-        <div className="modal-box relative z-10 max-w-md w-full max-h-[80vh] flex flex-col bg-base-100 shadow-xl border border-base-300">
-          <button 
-            className="btn btn-sm btn-circle absolute right-2 top-2 z-10" 
-            onClick={() => setShowThemeModal(false)}
-          >
-            ✕
-          </button>
-          
-          <div className="p-4 pb-0">
-            <h3 className="font-bold text-lg mb-4">Select Theme</h3>
-            
-            <div className="tabs tabs-boxed mb-4">
-              <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
-              <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
-              <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
-            </div>
-            
-            {/* Theme Preview */}
-            <div className="mb-4 p-3 border border-base-300 rounded-lg">
-              <div className="text-sm font-semibold mb-2 opacity-70">Preview</div>
-              <div className="flex gap-2 mb-2">
-                <button className="btn btn-primary btn-sm">Primary</button>
-                <button className="btn btn-secondary btn-sm">Secondary</button>
-                <button className="btn btn-accent btn-sm">Accent</button>
-              </div>
-              <div className="flex gap-2">
-                <button className="btn btn-info btn-sm">Info</button>
-                <button className="btn btn-success btn-sm">Success</button>
-                <button className="btn btn-warning btn-sm">Warning</button>
-                <button className="btn btn-error btn-sm">Error</button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="overflow-y-auto flex-1 px-4 pr-2 custom-scrollbar">
-            {Object.entries(THEME_GROUPS).map(([groupName, themes]) => (
-              <div key={groupName} className="mb-4">
-                <h4 className="font-semibold mb-2 text-sm opacity-70">{groupName}</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {themes.map((themeName) => (
-                    <button
-                      key={themeName}
-                      className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
-                      onClick={() => handleThemeChange(themeName as Theme)}
-                    >
-                      {formatThemeName(themeName)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="p-4 pt-2">
-            <button className="btn btn-primary w-full" onClick={() => setShowThemeModal(false)}>Close</button>
-          </div>
-        </div>
-      </div>,
-      document.body
-    );
   };
 
   return (
@@ -184,16 +134,130 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
           {/* Theme Selector */}
           <div className="card bg-base-200 shadow-sm">
             <div className="card-body p-4">
-              <div className="flex justify-between items-center">
-                <h3 className="card-title text-sm">Theme</h3>
-                <button 
-                  onClick={() => setShowThemeModal(true)}
-                  className="btn btn-sm btn-outline gap-2"
-                >
-                  <FontAwesomeIcon icon={faPalette} />
-                  <span>{formatThemeName(theme)}</span>
-                </button>
-              </div>
+              {!showThemeModal ? (
+                <div className="flex justify-between items-center">
+                  <h3 className="card-title text-sm">Theme</h3>
+                  <button 
+                    onClick={() => setShowThemeModal(true)}
+                    className="btn btn-sm btn-outline gap-2"
+                  >
+                    <FontAwesomeIcon icon={faPalette} />
+                    <span>{formatThemeName(theme)}</span>
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="card-title text-sm">Theme</h3>
+                    <button 
+                      onClick={() => setShowThemeModal(false)}
+                      className="btn btn-sm btn-outline"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  
+                  <div className="tabs tabs-boxed mb-4">
+                    <a 
+                      className={`tab ${activeThemeCategory === 'light' ? 'tab-active' : ''}`} 
+                      onClick={() => setActiveThemeCategory('light')}
+                    >
+                      Light
+                    </a>
+                    <a 
+                      className={`tab ${activeThemeCategory === 'dark' ? 'tab-active' : ''}`} 
+                      onClick={() => setActiveThemeCategory('dark')}
+                    >
+                      Dark
+                    </a>
+                    <a 
+                      className={`tab ${activeThemeCategory === 'custom' ? 'tab-active' : ''}`}
+                      onClick={() => setActiveThemeCategory('custom')}
+                    >
+                      Custom
+                    </a>
+                  </div>
+                  
+                  <div className="overflow-y-auto max-h-80 pr-2 custom-scrollbar">
+                    {activeThemeCategory === 'light' && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold mb-2 text-sm opacity-70">Light Themes</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {LIGHT_THEMES.map((themeName) => (
+                            <button
+                              key={themeName}
+                              className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
+                              onClick={() => handleThemeChange(themeName as Theme)}
+                            >
+                              {formatThemeName(themeName)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeThemeCategory === 'dark' && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold mb-2 text-sm opacity-70">Dark Themes</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {DARK_THEMES.map((themeName) => (
+                            <button
+                              key={themeName}
+                              className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
+                              onClick={() => handleThemeChange(themeName as Theme)}
+                            >
+                              {formatThemeName(themeName)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeThemeCategory === 'custom' && (
+                      <>
+                        {/* Theme Presets Section */}
+                        <div className="mb-4">
+                          <h4 className="font-semibold mb-2 text-sm opacity-70">Theme Presets</h4>
+                          <div className="text-xs opacity-70 mb-3">Curated theme combinations</div>
+                          
+                          {Object.entries(THEME_PRESETS).map(([category, presets]) => (
+                            <div key={category} className="mb-4">
+                              <h5 className="font-medium text-xs opacity-80 mb-2">{category}</h5>
+                              <div className="grid grid-cols-2 gap-2">
+                                {presets.map((preset) => (
+                                  <button
+                                    key={preset.name}
+                                    className={`btn btn-sm ${theme === preset.theme ? 'btn-primary' : 'btn-outline'}`}
+                                    onClick={() => handleThemeChange(preset.theme as Theme)}
+                                  >
+                                    {preset.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* All Themes Section */}
+                        <div className="mb-4">
+                          <div className="divider text-xs opacity-70">All Themes</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {AVAILABLE_THEMES.map(themeName => (
+                              <button
+                                key={themeName}
+                                className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
+                                onClick={() => handleThemeChange(themeName as Theme)}
+                              >
+                                {formatThemeName(themeName)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -261,7 +325,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 type="range" 
                 min="1" 
                 max="60" 
-                value={workMinutes}
+                value={config.workMinutes}
                 onChange={handleWorkMinutesChange}
                 className="range range-primary"
                 step="1"
@@ -273,7 +337,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 <span>45</span>
                 <span>60</span>
               </div>
-              <div className="text-right text-sm opacity-70 mt-1">{workMinutes} minutes</div>
+              <div className="text-right text-sm opacity-70 mt-1">{config.workMinutes} minutes</div>
             </div>
           </div>
 
@@ -285,7 +349,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 type="range" 
                 min="1" 
                 max="30" 
-                value={shortBreakMinutes}
+                value={config.shortBreakMinutes}
                 onChange={handleShortBreakMinutesChange}
                 className="range range-secondary"
                 step="1"
@@ -297,7 +361,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 <span>22</span>
                 <span>30</span>
               </div>
-              <div className="text-right text-sm opacity-70 mt-1">{shortBreakMinutes} minutes</div>
+              <div className="text-right text-sm opacity-70 mt-1">{config.shortBreakMinutes} minutes</div>
             </div>
           </div>
 
@@ -309,7 +373,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 type="range" 
                 min="1" 
                 max="60" 
-                value={longBreakMinutes}
+                value={config.longBreakMinutes}
                 onChange={handleLongBreakMinutesChange}
                 className="range range-accent"
                 step="1"
@@ -321,7 +385,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 <span>45</span>
                 <span>60</span>
               </div>
-              <div className="text-right text-sm opacity-70 mt-1">{longBreakMinutes} minutes</div>
+              <div className="text-right text-sm opacity-70 mt-1">{config.longBreakMinutes} minutes</div>
             </div>
           </div>
 
@@ -333,7 +397,7 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 type="range" 
                 min="2" 
                 max="8" 
-                value={longBreakInterval}
+                value={config.longBreakInterval}
                 onChange={handleLongBreakIntervalChange}
                 className="range range-info"
                 step="1"
@@ -345,23 +409,21 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
                 <span>6</span>
                 <span>8</span>
               </div>
-              <div className="text-right text-sm opacity-70 mt-1">Every {longBreakInterval} sessions</div>
+              <div className="text-right text-sm opacity-70 mt-1">Every {config.longBreakInterval} sessions</div>
             </div>
           </div>
 
-          {/* Save Button */}
-          <button 
-            onClick={saveSettings}
-            disabled={!hasChanges}
-            className={`btn btn-block ${hasChanges ? 'btn-primary' : 'btn-disabled'} mb-4`}
-          >
-            {hasChanges ? 'Save Settings' : 'No Changes'}
-          </button>
+          {/* Feedback message */}
+          <div className="text-center text-sm text-success opacity-80">
+            <div className="flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Settings update automatically</span>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Render the theme modal using portal */}
-      {showThemeModal && <ThemeModalPortal />}
     </div>
   );
 };
