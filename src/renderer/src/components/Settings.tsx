@@ -197,20 +197,6 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Dark Mode Toggle */}
-          <div className="card bg-base-200 shadow-sm">
-            <div className="card-body p-4">
-              <div className="flex justify-between items-center">
-                <h3 className="card-title text-sm">Dark Mode</h3>
-                <label className="swap swap-rotate">
-                  <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
-                  <FontAwesomeIcon icon={faSun} className="swap-on w-5 h-5" />
-                  <FontAwesomeIcon icon={faMoon} className="swap-off w-5 h-5" />
-                </label>
-              </div>
-            </div>
-          </div>
-
           {/* Notification Sound */}
           <div className="card bg-base-200 shadow-sm">
             <div className="card-body p-4">
