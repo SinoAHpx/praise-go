@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMoon, faSun, faBell, faPlay, faPause, faPalette } from '@fortawesome/free-solid-svg-icons';
 import usePomodoroStore, { AVAILABLE_THEMES, Theme } from '@renderer/app/pomodoroStore';
@@ -93,6 +94,54 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  };
+
+  // Theme Modal Portal Component
+  const ThemeModalPortal = () => {
+    return createPortal(
+      <div className="fixed inset-0 flex items-center justify-center z-[9999]">
+        <div className="fixed inset-0 bg-black bg-opacity-70" onClick={() => setShowThemeModal(false)}></div>
+        <div className="modal-box relative z-10 max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col bg-base-100 shadow-xl border border-base-300">
+          <button 
+            className="btn btn-sm btn-circle absolute right-2 top-2" 
+            onClick={() => setShowThemeModal(false)}
+          >
+            ✕
+          </button>
+          <h3 className="font-bold text-lg mb-4">Select Theme</h3>
+          
+          <div className="tabs tabs-boxed mb-4">
+            <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
+            <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
+            <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
+          </div>
+          
+          <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar">
+            {Object.entries(THEME_GROUPS).map(([groupName, themes]) => (
+              <div key={groupName} className="mb-4">
+                <h4 className="font-semibold mb-2 text-sm opacity-70">{groupName}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {themes.map((themeName) => (
+                    <button
+                      key={themeName}
+                      className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
+                      onClick={() => handleThemeChange(themeName as Theme)}
+                    >
+                      {formatThemeName(themeName)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="modal-action mt-4">
+            <button className="btn btn-primary" onClick={() => setShowThemeModal(false)}>Close</button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   return (
@@ -292,50 +341,8 @@ const Settings: React.FC<SettingsProps> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Theme Selection Modal - Positioned absolutely in the center */}
-      {showThemeModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowThemeModal(false)}></div>
-          <div className="modal-box relative z-10 max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <button 
-              className="btn btn-sm btn-circle absolute right-2 top-2" 
-              onClick={() => setShowThemeModal(false)}
-            >
-              ✕
-            </button>
-            <h3 className="font-bold text-lg mb-4">Select Theme</h3>
-            
-            <div className="tabs tabs-boxed mb-4">
-              <a className={`tab ${theme === 'light' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('light')}>Light</a>
-              <a className={`tab ${theme === 'dark' ? 'tab-active' : ''}`} onClick={() => handleThemeChange('dark')}>Dark</a>
-              <a className={`tab ${!['light', 'dark'].includes(theme) ? 'tab-active' : ''}`}>Custom</a>
-            </div>
-            
-            <div className="overflow-y-auto flex-1 pr-2">
-              {Object.entries(THEME_GROUPS).map(([groupName, themes]) => (
-                <div key={groupName} className="mb-4">
-                  <h4 className="font-semibold mb-2 text-sm opacity-70">{groupName}</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {themes.map((themeName) => (
-                      <button
-                        key={themeName}
-                        className={`btn btn-sm ${theme === themeName ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={() => handleThemeChange(themeName as Theme)}
-                      >
-                        {formatThemeName(themeName)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="modal-action mt-4">
-              <button className="btn btn-primary" onClick={() => setShowThemeModal(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Render the theme modal using portal */}
+      {showThemeModal && <ThemeModalPortal />}
     </div>
   );
 };
